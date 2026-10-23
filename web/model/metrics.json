@@ -1,0 +1,87 @@
+{
+  "weights": "F:\\IRIS\\safetycam\\training\\weights\\best.pt",
+  "split": "test",
+  "precision": 0.6139,
+  "recall": 0.4917,
+  "mAP50": 0.5204,
+  "mAP50-95": 0.2606,
+  "per_class": [
+    {
+      "class": "helmet",
+      "precision": 0.9061,
+      "recall": 0.9042,
+      "mAP50": 0.9217,
+      "mAP50-95": 0.4829
+    },
+    {
+      "class": "gloves",
+      "precision": 0.9223,
+      "recall": 0.7284,
+      "mAP50": 0.7655,
+      "mAP50-95": 0.3789
+    },
+    {
+      "class": "vest",
+      "precision": 0.8564,
+      "recall": 0.8764,
+      "mAP50": 0.9022,
+      "mAP50-95": 0.5638
+    },
+    {
+      "class": "boots",
+      "precision": 0.8042,
+      "recall": 0.6423,
+      "mAP50": 0.7443,
+      "mAP50-95": 0.3919
+    },
+    {
+      "class": "goggles",
+      "precision": 0.8847,
+      "recall": 0.7383,
+      "mAP50": 0.776,
+      "mAP50-95": 0.328
+    },
+    {
+      "class": "none",
+      "precision": 0.5498,
+      "recall": 0.4,
+      "mAP50": 0.3545,
+      "mAP50-95": 0.1056
+    },
+    {
+      "class": "Person",
+      "precision": 0.8316,
+      "recall": 0.7966,
+      "mAP50": 0.8574,
+      "mAP50-95": 0.4963
+    },
+    {
+      "class": "no_helmet",
+      "precision": 0.32,
+      "recall": 0.15,
+      "mAP50": 0.2021,
+      "mAP50-95": 0.0642
+    },
+    {
+      "class": "no_goggle",
+      "precision": 0.3601,
+      "recall": 0.1031,
+      "mAP50": 0.1089,
+      "mAP50-95": 0.0232
+    },
+    {
+      "class": "no_gloves",
+      "precision": 0.3178,
+      "recall": 0.069,
+      "mAP50": 0.0865,
+      "mAP50-95": 0.0312
+    },
+    {
+      "class": "no_boots",
+      "precision": 0.0,
+      "recall": 0.0,
+      "mAP50": 0.0055,
+      "mAP50-95": 0.0011
+    }
+  ]
+}

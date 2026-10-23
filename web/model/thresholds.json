@@ -1,0 +1,13 @@
+{
+  "helmet": 0.544,
+  "gloves": 0.4,
+  "vest": 0.4,
+  "boots": 0.544,
+  "goggles": 0.474,
+  "none": 0.1,
+  "Person": 0.503,
+  "no_helmet": 0.1,
+  "no_goggle": 0.1,
+  "no_gloves": 0.1,
+  "no_boots": 0.251
+}

@@ -32,13 +32,15 @@ function sourceSize(src) {
 }
 
 export class Detector {
-  constructor({ modelUrl, classesUrl, size = 640 }) {
+  constructor({ modelUrl, classesUrl, thresholdsUrl = null, size = 640 }) {
     this.modelUrl = modelUrl;
     this.classesUrl = classesUrl;
+    this.thresholdsUrl = thresholdsUrl;
     this.size = size;
     this.session = null;
     this.backend = '';
     this.names = [];
+    this.baseThresholds = {}; // per-class conf tuned on validation data (optional file)
     this.canvas = document.createElement('canvas');
     this.canvas.width = this.canvas.height = size;
     this.ctx = this.canvas.getContext('2d', { willReadFrequently: true });
@@ -52,6 +54,15 @@ export class Detector {
     const res = await fetch(this.classesUrl);
     if (!res.ok) throw new Error('Daftar kelas model tidak ditemukan.');
     this.names = await res.json();
+    if (this.thresholdsUrl) {
+      // Optional: without it every class uses the same fallback threshold.
+      try {
+        const t = await fetch(this.thresholdsUrl);
+        if (t.ok) this.baseThresholds = await t.json();
+      } catch {
+        this.baseThresholds = {};
+      }
+    }
     const model = await fetchWithProgress(this.modelUrl, onProgress);
 
     // WebGPU first (fast), WASM as fallback. Warm-up run proves the backend works.
@@ -102,7 +113,7 @@ export class Detector {
     return { data, dims: out.dims, lb, srcW, srcH, ms };
   }
 
-  decode(raw, { conf, iouThreshold = 0.45 }) {
+  decode(raw, { conf, thresholds = null, iouThreshold = 0.45 }) {
     return decode(raw.data, {
       numClasses: raw.dims[1] - 4,
       numAnchors: raw.dims[2],
@@ -111,6 +122,7 @@ export class Detector {
       srcW: raw.srcW,
       srcH: raw.srcH,
       conf,
+      thresholds,
       iouThreshold,
     });
   }

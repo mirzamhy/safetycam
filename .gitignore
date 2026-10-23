@@ -7,3 +7,4 @@ datasets/
 training/weights/best_quick.pt
 *.pt
 !training/weights/best.pt
+training/weights/*.onnx

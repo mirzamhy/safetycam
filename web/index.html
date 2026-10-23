@@ -205,9 +205,9 @@
             </div>
 
             <div class="control">
-              <label for="conf">Ambang keyakinan <output id="conf-out" for="conf">35%</output></label>
-              <input type="range" id="conf" min="10" max="90" step="5" value="35">
-              <p class="control__hint">Turunkan untuk menangkap objek kecil, naikkan untuk mengurangi deteksi keliru.</p>
+              <label for="conf">Sensitivitas <output id="conf-out" for="conf">Bawaan</output></label>
+              <input type="range" id="conf" min="-20" max="20" step="5" value="0" autocomplete="off">
+              <p class="control__hint">Ambang tiap kelas sudah disetel dari data validasi. Geser ke kanan untuk menangkap lebih banyak pelanggaran, ke kiri untuk mengurangi deteksi keliru.</p>
             </div>
 
             <p class="meta" id="meta"></p>

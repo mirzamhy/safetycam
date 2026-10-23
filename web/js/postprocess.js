@@ -31,23 +31,33 @@ export function nms(dets, iouThreshold = 0.45) {
 }
 
 /**
+ * Per-class confidence thresholds, shifted by a sensitivity offset.
+ * base: { className: threshold } (e.g. model/thresholds.json); missing classes use fallback.
+ * offset > 0 lowers every threshold (more sensitive), offset < 0 raises it.
+ */
+export function classThresholds(names, base = {}, offset = 0, fallback = 0.35) {
+  return names.map((n) => Math.min(0.95, Math.max(0.05, (base[n] ?? fallback) - offset)));
+}
+
+/**
  * Decode raw output [1, 4 + numClasses, numAnchors] (row-major Float32Array).
  * Rows 0-3 are cx, cy, w, h in letterboxed pixels; the rest are class scores.
+ * thresholds (one per class) overrides the single conf when given.
  */
-export function decode(data, { numClasses, numAnchors, names, lb, srcW, srcH, conf = 0.35, iouThreshold = 0.45 }) {
+export function decode(data, { numClasses, numAnchors, names, lb, srcW, srcH, conf = 0.35, thresholds = null, iouThreshold = 0.45 }) {
   const A = numAnchors;
   const dets = [];
   for (let a = 0; a < A; a++) {
-    let best = -1;
-    let score = conf;
-    for (let c = 0; c < numClasses; c++) {
+    let best = 0;
+    let score = data[4 * A + a];
+    for (let c = 1; c < numClasses; c++) {
       const s = data[(4 + c) * A + a];
-      if (s >= score) {
+      if (s > score) {
         score = s;
         best = c;
       }
     }
-    if (best < 0) continue;
+    if (score < (thresholds ? thresholds[best] : conf)) continue;
 
     const cx = data[a];
     const cy = data[A + a];

@@ -25,5 +25,10 @@ test('safe when PPE detected even if person box is missed', () => {
 
 test('no worker when nothing relevant detected', () => {
   assert.equal(assess([]).status, 'NO_WORKER');
-  assert.equal(assess([det('none')]).status, 'NO_WORKER');
+});
+
+test('"none" (torso without vest) counts as a violation', () => {
+  const r = assess([det('Person'), det('helmet'), det('none')]);
+  assert.equal(r.status, 'VIOLATION');
+  assert.equal(summaryText(r), '1 tanpa rompi');
 });

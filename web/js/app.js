@@ -2,13 +2,18 @@ import { Detector } from './detector.js';
 import { assess, summaryText } from './compliance.js';
 import { drawDetections } from './draw.js';
 import { classInfo } from './labels.js';
+import { classThresholds } from './postprocess.js';
 
 const $ = (id) => document.getElementById(id);
-const detector = new Detector({ modelUrl: 'model/best.onnx', classesUrl: 'model/classes.json' });
+const detector = new Detector({
+  modelUrl: 'model/best.onnx',
+  classesUrl: 'model/classes.json',
+  thresholdsUrl: 'model/thresholds.json',
+});
 
 const state = {
   mode: 'upload',
-  conf: 0.35,
+  sensitivity: 0, // shifts every per-class threshold; +0.10 = 10 points more sensitive
   image: null,
   raw: null,
   stream: null,
@@ -104,9 +109,13 @@ function showError(text) {
 
 const canvas = $('result-canvas');
 
+const decodeRaw = (raw) => detector.decode(raw, {
+  thresholds: classThresholds(detector.names, detector.baseThresholds, state.sensitivity),
+});
+
 function redrawPhoto() {
   if (!state.raw || !state.image) return;
-  const dets = detector.decode(state.raw, { conf: state.conf });
+  const dets = decodeRaw(state.raw);
   canvas.width = state.raw.srcW;
   canvas.height = state.raw.srcH;
   const ctx = canvas.getContext('2d');
@@ -215,11 +224,17 @@ document.querySelectorAll('.sample').forEach((btn) => {
   });
 });
 
-/* ---------- Confidence slider ---------- */
+/* ---------- Sensitivity slider ---------- */
+
+function sensitivityText(v) {
+  if (v === 0) return 'Bawaan';
+  return v > 0 ? `+${v}` : `${v}`;
+}
 
 $('conf').addEventListener('input', (e) => {
-  state.conf = Number(e.target.value) / 100;
-  $('conf-out').textContent = `${e.target.value}%`;
+  const v = Number(e.target.value);
+  state.sensitivity = v / 100;
+  $('conf-out').textContent = sensitivityText(v);
   state.lastVerdictKey = '';
   if (state.mode === 'upload') redrawPhoto();
 });
@@ -284,7 +299,7 @@ async function loop() {
       try {
         const raw = await detector.infer(video);
         if (!state.running) break;
-        const dets = detector.decode(raw, { conf: state.conf });
+        const dets = decodeRaw(raw);
         overlay.width = raw.srcW;
         overlay.height = raw.srcH;
         drawDetections(overlay.getContext('2d'), dets);

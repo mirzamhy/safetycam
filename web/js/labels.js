@@ -6,7 +6,8 @@ export const CLASS_INFO = {
   vest: { label: 'Rompi', kind: 'ppe' },
   boots: { label: 'Sepatu safety', kind: 'ppe' },
   goggles: { label: 'Kacamata', kind: 'ppe' },
-  none: { label: 'Tak terkategori', kind: 'other' },
+  // Dataset has no no_vest class; "none" boxes mark a torso without a vest.
+  none: { label: 'Tanpa rompi', kind: 'violation' },
   Person: { label: 'Pekerja', kind: 'person' },
   no_helmet: { label: 'Tanpa helm', kind: 'violation' },
   no_goggle: { label: 'Tanpa kacamata', kind: 'violation' },
