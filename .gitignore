@@ -1,0 +1,9 @@
+__pycache__/
+.venv/
+venv/
+training/runs/
+training/datasets/
+datasets/
+training/weights/best_quick.pt
+*.pt
+!training/weights/best.pt
