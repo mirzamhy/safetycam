@@ -10,6 +10,8 @@ from pathlib import Path
 
 from ultralytics import YOLO
 
+import compliance
+
 ROOT = Path(__file__).resolve().parent
 
 
@@ -20,6 +22,7 @@ def parse_args():
     p.add_argument("--conf", type=float, default=0.35)
     p.add_argument("--imgsz", type=int, default=640)
     p.add_argument("--device", default=None)
+    p.add_argument("--required", default="helmet,vest", help="APD wajib per pekerja, pisahkan dengan koma")
     return p.parse_args()
 
 
@@ -36,14 +39,11 @@ def main():
         name="predict",
         exist_ok=True,
     )
+    required = tuple(x.strip() for x in args.required.split(",") if x.strip())
     for r in results:
-        counts = {}
-        for c in r.boxes.cls.tolist():
-            name = r.names[int(c)]
-            counts[name] = counts.get(name, 0) + 1
-        violations = {k: v for k, v in counts.items() if k.startswith("no_")}
-        status = "PELANGGARAN" if violations else ("AMAN" if counts.get("Person") else "TIDAK ADA PEKERJA")
-        print(f"{Path(r.path).name}: {status} {counts}")
+        report = compliance.assess(r, required=required)
+        print(f"\n{Path(r.path).name}")
+        print(compliance.format_report(report))
     print(f"\nGambar beranotasi: {results[0].save_dir if results else '-'}")
 
 
