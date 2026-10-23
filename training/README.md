@@ -2,7 +2,8 @@
 
 Model YOLO11n untuk mendeteksi APD pekerja konstruksi, dilatih dengan dataset
 [Construction-PPE](https://docs.ultralytics.com/datasets/detect/construction-ppe/).
-Dataset terdownload otomatis saat training pertama kali.
+Dataset (sekitar 180 MB) terdownload otomatis ke `training/datasets/` saat training pertama kali.
+Lokasinya tidak bergantung pada setting global Ultralytics, jadi aman di mesin mana pun.
 
 Kelas: `helmet, gloves, vest, boots, goggles, none, Person, no_helmet, no_goggle, no_gloves, no_boots`
 

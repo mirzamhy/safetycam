@@ -17,6 +17,8 @@ from pathlib import Path
 
 from ultralytics import YOLO
 
+import dataset
+
 ROOT = Path(__file__).resolve().parent
 RESULTS_DIR = ROOT / "results"
 
@@ -33,7 +35,7 @@ def parse_args():
 
 def run_val(model, args, split):
     return model.val(
-        data=args.data,
+        data=dataset.prepare(args.data),
         split=split,
         imgsz=args.imgsz,
         device=args.device,

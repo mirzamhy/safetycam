@@ -16,6 +16,8 @@ from pathlib import Path
 
 from ultralytics import YOLO
 
+import dataset
+
 ROOT = Path(__file__).resolve().parent
 RUNS_DIR = ROOT / "runs"
 RUN_NAME = "ppe"
@@ -50,7 +52,7 @@ def main():
     else:
         model = YOLO(args.model)
         overrides = dict(
-            data=args.data,
+            data=dataset.prepare(args.data),
             epochs=args.epochs,
             imgsz=args.imgsz,
             batch=args.batch,
