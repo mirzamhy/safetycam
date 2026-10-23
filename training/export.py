@@ -52,6 +52,13 @@ def main():
     names = [model.names[i] for i in sorted(model.names)]
     (WEB_MODEL_DIR / "classes.json").write_text(json.dumps(names, indent=2), encoding="utf-8")
 
+    metrics = ROOT / "results" / "metrics.json"
+    if metrics.exists():
+        shutil.copy2(metrics, WEB_MODEL_DIR / "metrics.json")
+        print(f"Metrik : {WEB_MODEL_DIR / 'metrics.json'}")
+    else:
+        print("Metrik : belum ada (jalankan evaluate.py dulu supaya muncul di website)")
+
     size_mb = target.stat().st_size / 1e6
     print("\n=== Export selesai ===")
     print(f"ONNX   : {target} ({size_mb:.1f} MB)")

@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SafetyCam · Deteksi APD Pekerja</title>
+  <meta name="description" content="Deteksi helm, rompi, sarung tangan, sepatu safety, dan kacamata pada pekerja konstruksi. Model YOLO11 berjalan langsung di browser.">
+  <meta name="theme-color" content="#0E1110">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1110'/%3E%3Cpath d='M7 13V7h6M19 7h6v6M25 19v6h-6M13 25H7v-6' fill='none' stroke='%23D7F23A' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,500..800&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/ort.webgpu.min.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <a class="skip" href="#demo">Langsung ke demo</a>
+
+  <header class="nav" id="top">
+    <div class="wrap nav__inner">
+      <a class="brand" href="#top" aria-label="SafetyCam, ke atas">
+        <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M7 13V7h6M19 7h6v6M25 19v6h-6M13 25H7v-6" /></svg>
+        <span>SafetyCam</span>
+      </a>
+      <nav aria-label="Navigasi utama">
+        <ul class="nav__links">
+          <li><a href="#demo">Coba deteksi</a></li>
+          <li><a href="#dicek">Yang dicek</a></li>
+          <li><a href="#cara-kerja">Cara kerja</a></li>
+          <li><a href="#akurasi">Akurasi</a></li>
+        </ul>
+      </nav>
+      <a class="btn btn--accent btn--sm" href="#demo">Mulai deteksi</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap hero__grid">
+        <div class="hero__copy">
+          <h1 id="hero-title">Pekerja tanpa helm terlihat sebelum masuk area kerja.</h1>
+          <p class="lead">SafetyCam mengenali helm, rompi, sarung tangan, sepatu safety, dan kacamata, lalu menandai pekerja yang tidak memakainya. Model berjalan di browser kamu, jadi foto dan video tidak dikirim ke server mana pun.</p>
+          <div class="hero__actions">
+            <a class="btn btn--accent" href="#demo">Coba dengan foto</a>
+            <a class="btn btn--ghost" href="#demo" data-open-webcam>Nyalakan webcam</a>
+          </div>
+        </div>
+        <figure class="hero__media frame">
+          <img src="assets/pekerja-proyek.jpg" alt="Tiga pekerja proyek berhelm putih dan rompi hi-vis membaca gambar kerja di lokasi konstruksi" width="1000" height="667" fetchpriority="high">
+        </figure>
+      </div>
+
+      <div class="wrap">
+        <dl class="specs">
+          <div><dt>Kelas yang dikenali</dt><dd>11</dd></div>
+          <div><dt>Gambar berlabel di dataset</dt><dd>1.416</dd></div>
+          <div><dt>Parameter model YOLO11n</dt><dd>2,6 jt</dd></div>
+          <div><dt>Foto yang diunggah ke server</dt><dd>0</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="demo" id="demo" aria-labelledby="demo-title">
+      <div class="wrap">
+        <div class="demo__head">
+          <div>
+            <h2 id="demo-title">Coba deteksi</h2>
+            <p class="muted">Unggah foto pekerja atau arahkan webcam. Hasil muncul dalam kurang dari satu detik.</p>
+          </div>
+          <div class="tabs" role="tablist" aria-label="Sumber gambar">
+            <button class="tab" role="tab" id="tab-upload" aria-controls="panel-upload" aria-selected="true">Foto</button>
+            <button class="tab" role="tab" id="tab-webcam" aria-controls="panel-webcam" aria-selected="false" tabindex="-1">Webcam</button>
+          </div>
+        </div>
+
+        <div class="demo__grid">
+          <div class="stage-col">
+            <div class="stage" id="panel-upload" role="tabpanel" aria-labelledby="tab-upload">
+              <label class="drop" id="drop" for="file">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4m0 0-4.5 4.5M12 4l4.5 4.5M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+                <span class="drop__title">Tarik foto ke sini</span>
+                <span class="drop__hint">atau <u>pilih file</u> · JPG, PNG, WebP</span>
+              </label>
+              <input class="sr-only" type="file" id="file" tabindex="-1" accept="image/jpeg,image/png,image/webp">
+              <canvas id="result-canvas" class="stage__canvas" hidden></canvas>
+              <button class="stage__reset btn btn--ghost btn--sm" id="reset" type="button" hidden>Ganti foto</button>
+            </div>
+
+            <div class="stage" id="panel-webcam" role="tabpanel" aria-labelledby="tab-webcam" hidden>
+              <div class="cam" id="cam">
+                <video id="video" playsinline muted></video>
+                <canvas id="overlay" class="cam__overlay"></canvas>
+                <div class="cam__idle" id="cam-idle">
+                  <p>Kamera belum aktif. Izin kamera diminta saat kamu menekan tombol di bawah.</p>
+                  <button class="btn btn--accent" id="cam-start" type="button">Nyalakan kamera</button>
+                </div>
+              </div>
+              <div class="cam__bar">
+                <span class="mono" id="fps" aria-live="off">-</span>
+                <button class="btn btn--ghost btn--sm" id="cam-stop" type="button" hidden>Matikan kamera</button>
+              </div>
+            </div>
+
+            <div class="samples" id="samples">
+              <p class="samples__label">Atau coba contoh:</p>
+              <div class="samples__row">
+                <button class="sample" type="button" data-src="assets/pekerja-proyek.jpg">
+                  <img src="assets/pekerja-proyek.jpg" alt="" width="120" height="80" loading="lazy">
+                  <span>Tim survei lapangan</span>
+                </button>
+                <button class="sample" type="button" data-src="assets/gerbang-proyek.jpg">
+                  <img src="assets/gerbang-proyek.jpg" alt="" width="120" height="80" loading="lazy">
+                  <span>Briefing di gerbang proyek</span>
+                </button>
+                <button class="sample" type="button" data-src="assets/helm-rompi.jpg">
+                  <img src="assets/helm-rompi.jpg" alt="" width="120" height="80" loading="lazy">
+                  <span>Helm dipegang, belum dipakai</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <aside class="panel" aria-label="Hasil deteksi">
+            <div class="model-state" id="model-state">
+              <p class="model-state__text" id="model-text">Model belum dimuat.</p>
+              <div class="progress" aria-hidden="true"><span id="model-bar"></span></div>
+              <button class="btn btn--ghost btn--sm" id="model-retry" type="button" hidden>Coba muat lagi</button>
+            </div>
+
+            <div class="verdict verdict--idle" id="verdict">
+              <p class="verdict__label">Status</p>
+              <p class="verdict__title" id="verdict-title" aria-live="polite">Menunggu gambar</p>
+              <p class="verdict__text" id="verdict-text">Pilih foto, contoh, atau webcam untuk mulai.</p>
+            </div>
+
+            <div class="breakdown" id="breakdown" hidden>
+              <div class="breakdown__group">
+                <h3>Pelanggaran</h3>
+                <ul id="list-violation" class="tally tally--violation"></ul>
+              </div>
+              <div class="breakdown__group">
+                <h3>APD terpakai</h3>
+                <ul id="list-ppe" class="tally tally--ppe"></ul>
+              </div>
+            </div>
+
+            <div class="control">
+              <label for="conf">Ambang keyakinan <output id="conf-out" class="mono" for="conf">35%</output></label>
+              <input type="range" id="conf" min="10" max="90" step="5" value="35">
+              <p class="control__hint">Turunkan untuk menangkap objek kecil, naikkan untuk mengurangi deteksi keliru.</p>
+            </div>
+
+            <p class="meta mono" id="meta"></p>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="checks" id="dicek" aria-labelledby="checks-title">
+      <div class="wrap checks__grid">
+        <figure class="checks__media frame">
+          <img src="assets/helm-rompi.jpg" alt="Pekerja memegang helm putih dan memakai rompi hi-vis oranye-hijau" width="626" height="417" loading="lazy">
+        </figure>
+        <div>
+          <h2 id="checks-title">Yang dicek pada setiap pekerja</h2>
+          <p class="muted">Model dilatih untuk dua hal: mengenali APD yang dipakai, dan mengenali bagian tubuh yang seharusnya terlindungi tapi tidak.</p>
+          <div class="checks__cols">
+            <div>
+              <h3 class="legend legend--ppe">APD terpakai</h3>
+              <ul class="plain">
+                <li>Helm</li><li>Rompi</li><li>Sarung tangan</li><li>Sepatu safety</li><li>Kacamata</li>
+              </ul>
+            </div>
+            <div>
+              <h3 class="legend legend--violation">Ditandai pelanggaran</h3>
+              <ul class="plain">
+                <li>Tanpa helm</li><li>Tanpa sarung tangan</li><li>Tanpa sepatu safety</li><li>Tanpa kacamata</li>
+              </ul>
+            </div>
+          </div>
+          <p class="note">Rompi tidak punya label pelanggaran di dataset ini, jadi pekerja tanpa rompi belum bisa ditandai.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="how" id="cara-kerja" aria-labelledby="how-title">
+      <div class="wrap">
+        <h2 id="how-title">Dari dataset ke browser</h2>
+        <ol class="pipeline">
+          <li>
+            <span class="pipeline__n mono">01</span>
+            <h3>Dataset Construction-PPE</h3>
+            <p>1.416 foto lokasi kerja berlabel kotak untuk 11 kelas, dari Ultralytics.</p>
+          </li>
+          <li>
+            <span class="pipeline__n mono">02</span>
+            <h3>Training YOLO11n</h3>
+            <p>Model deteksi terkecil di keluarga YOLO11, dipilih supaya cukup ringan untuk laptop dan ponsel.</p>
+          </li>
+          <li>
+            <span class="pipeline__n mono">03</span>
+            <h3>Export ke ONNX</h3>
+            <p>Input 640×640, output 15 × 8.400 kandidat kotak. Penyaringan kotak (NMS) dikerjakan di JavaScript.</p>
+          </li>
+          <li>
+            <span class="pipeline__n mono">04</span>
+            <h3>Inferensi di browser</h3>
+            <p>onnxruntime-web memakai WebGPU bila tersedia, WASM bila tidak. Gambar tidak pernah keluar dari perangkat.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="accuracy" id="akurasi" aria-labelledby="acc-title">
+      <div class="wrap accuracy__grid">
+        <div>
+          <h2 id="acc-title">Akurasi model</h2>
+          <p class="muted">Diukur pada data uji yang tidak dipakai saat training. mAP50 menghitung tebakan benar bila kotaknya tumpang tindih minimal 50% dengan label asli.</p>
+          <div class="score" id="score" hidden>
+            <span class="score__value" id="score-value"></span>
+            <span class="score__label">mAP50, semua kelas</span>
+          </div>
+        </div>
+        <div id="metrics">
+          <p class="empty" id="metrics-empty">Angka akurasi belum tersedia. Jalankan <code>python evaluate.py</code> lalu <code>python export.py</code> setelah training penuh, dan tabelnya muncul di sini.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer__inner">
+      <a class="brand" href="#top">
+        <svg class="brand__mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M7 13V7h6M19 7h6v6M25 19v6h-6M13 25H7v-6" /></svg>
+        <span>SafetyCam</span>
+      </a>
+      <p>Proyek portofolio. Dataset <a href="https://docs.ultralytics.com/datasets/detect/construction-ppe/" rel="noopener" target="_blank">Construction-PPE</a> dan model <a href="https://docs.ultralytics.com/models/yolo11/" rel="noopener" target="_blank">YOLO11</a> dari Ultralytics, lisensi AGPL-3.0.</p>
+    </div>
+  </footer>
+</body>
+</html>
