@@ -2,10 +2,10 @@ import { classInfo } from './labels.js';
 
 // Box colors mirror the CSS tokens: hi-vis = PPE worn, red = PPE missing.
 const COLORS = {
-  ppe: { stroke: '#D7F23A', fill: '#D7F23A', text: '#0E1110' },
-  violation: { stroke: '#FF4D45', fill: '#C9302C', text: '#FFFFFF' },
-  person: { stroke: '#E8EBE6', fill: '#E8EBE6', text: '#0E1110' },
-  other: { stroke: '#8A918C', fill: '#8A918C', text: '#0E1110' },
+  ppe: { stroke: '#B6F23A', fill: '#B6F23A', text: '#0B0B0C' },
+  violation: { stroke: '#FF3340', fill: '#D91C27', text: '#FFFFFF' },
+  person: { stroke: '#F3F3F1', fill: '#F3F3F1', text: '#0B0B0C' },
+  other: { stroke: '#8D8D94', fill: '#8D8D94', text: '#0B0B0C' },
 };
 
 /** Draw detections on a canvas whose pixel size equals the source image size. */
@@ -14,7 +14,7 @@ export function drawDetections(ctx, detections, { showPerson = true } = {}) {
   const unit = Math.max(1, Math.min(W, H) / 400);
   const fontSize = Math.round(Math.max(11, 12 * unit));
   ctx.lineWidth = Math.max(2, 2 * unit);
-  ctx.font = `600 ${fontSize}px "IBM Plex Sans", system-ui, sans-serif`;
+  ctx.font = `600 ${fontSize}px "Barlow", system-ui, sans-serif`;
   ctx.textBaseline = 'top';
 
   // Person boxes first so gear boxes sit on top.

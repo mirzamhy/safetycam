@@ -372,34 +372,37 @@ async function loadMetrics() {
   $('score').hidden = false;
   $('score-value').textContent = pct(m.mAP50);
 
-  const table = document.createElement('table');
-  table.className = 'metrics-table';
-  table.innerHTML = '<thead><tr><th scope="col">Kelas</th><th scope="col">Precision</th><th scope="col">Recall</th><th scope="col">mAP50</th></tr></thead>';
-  const body = document.createElement('tbody');
+  // mAP50 per class as horizontal bars, best first.
+  const chart = document.createElement('ul');
+  chart.className = 'chart';
+  chart.setAttribute('aria-label', 'mAP50 per kelas');
   for (const c of [...m.per_class].sort((a, b) => b.mAP50 - a.mAP50)) {
-    const tr = document.createElement('tr');
-    const cells = [classInfo(c.class).label, pct(c.precision), pct(c.recall), pct(c.mAP50)];
-    cells.forEach((text, i) => {
-      const td = document.createElement(i === 0 ? 'th' : 'td');
-      if (i === 0) td.scope = 'row';
-      td.textContent = text;
-      if (i === 3) {
-        const bar = document.createElement('span');
-        bar.className = 'bar';
-        bar.setAttribute('aria-hidden', 'true');
-        bar.innerHTML = `<i style="width:${Math.round(c.mAP50 * 100)}%"></i>`;
-        td.append(bar);
-      }
-      tr.append(td);
-    });
-    body.append(tr);
+    const li = document.createElement('li');
+    const name = document.createElement('span');
+    name.textContent = classInfo(c.class).label;
+    const track = document.createElement('span');
+    track.className = 'chart__track';
+    track.setAttribute('aria-hidden', 'true');
+    const fill = document.createElement('span');
+    fill.className = 'chart__fill';
+    fill.style.width = `${Math.max(0, Math.min(100, c.mAP50 * 100))}%`;
+    track.append(fill);
+    const val = document.createElement('span');
+    val.className = 'chart__val';
+    val.textContent = pct(c.mAP50);
+    li.append(name, track, val);
+    chart.append(li);
   }
-  table.append(body);
 
-  const caption = document.createElement('p');
-  caption.className = 'metrics-caption';
-  caption.textContent = `Data ${m.split === 'test' ? 'uji' : 'validasi'} · precision ${pct(m.precision)} · recall ${pct(m.recall)} · mAP50-95 ${pct(m['mAP50-95'])}`;
-  $('metrics').replaceChildren(table, caption);
+  const meta = document.createElement('p');
+  meta.className = 'chart-meta';
+  meta.innerHTML = [
+    ['Data', m.split === 'test' ? 'uji' : 'validasi'],
+    ['Precision', pct(m.precision)],
+    ['Recall', pct(m.recall)],
+    ['mAP50-95', pct(m['mAP50-95'])],
+  ].map(([k, v]) => `<span>${k} <b>${v}</b></span>`).join('');
+  $('metrics').replaceChildren(chart, meta);
 }
 
 loadMetrics();
